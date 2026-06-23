@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Books - LibraryDB{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Books</h1>
+        <p class="page-subtitle">{{ books|length }} titles in catalog</p>
+    </div>
+    <button class="btn btn-primary" onclick="showAddForm()">Add Book</button>
+</div>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Price</th>
+                <th>Available</th>
+                <th>Publisher</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in books %}
+            <tr>
+                <td style="color:var(--text-muted)">{{ b.book_id }}</td>
+                <td style="font-weight:600">{{ b.Title }}</td>
+                <td>{{ b.Author }}</td>
+                <td>{{ '%.0f' % b.Price }}</td>
+                <td><span class="badge {% if b.Available > 0 %}badge-green{% else %}badge-red{% endif %}">{{ b.Available }}</span></td>
+                <td>{{ b.Pub_name }}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteBook({{ b.book_id }})">Remove</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function showAddForm() {
+    const publishers = {{ publishers | tojson }};
+    let opts = publishers.map(p => `<option value="${p.Pub_id}">${p.Name}</option>`).join('');
+    openModal('Add New Book', `
+        <form id="addBookForm">
+            <div class="form-group">
+                <label>Book ID</label>
+                <input type="number" name="book_id" required>
+            </div>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="Title" required>
+            </div>
+            <div class="form-group">
+                <label>Author</label>
+                <input type="text" name="Author" required>
+            </div>
+            <div class="form-group">
+                <label>Price</label>
+                <input type="number" step="0.01" name="Price" required>
+            </div>
+            <div class="form-group">
+                <label>Available Copies</label>
+                <input type="number" name="Available" value="1" required>
+            </div>
+            <div class="form-group">
+                <label>Publisher</label>
+                <select name="Pub_id" required>${opts}</select>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Book</button>
+        </form>
+    `);
+    document.getElementById('addBookForm').onsubmit = function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const data = Object.fromEntries(fd);
+        data.book_id = parseInt(data.book_id);
+        data.Price = parseFloat(data.Price);
+        data.Available = parseInt(data.Available);
+        data.Pub_id = parseInt(data.Pub_id);
+        api('/api/books', 'POST', data).then(() => { closeModal(); location.reload(); });
+    };
+}
+function deleteBook(id) {
+    if (confirm('Remove this book from the catalog?')) {
+        api('/api/books/' + id, 'DELETE').then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

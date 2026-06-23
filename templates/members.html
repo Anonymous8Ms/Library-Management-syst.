@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Members - LibraryDB{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Members</h1>
+        <p class="page-subtitle">{{ members|length }} registered members</p>
+    </div>
+    <button class="btn btn-primary" onclick="showAddForm()">Add Member</button>
+</div>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Type</th>
+                <th>Member Since</th>
+                <th>Expiry</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in members %}
+            <tr>
+                <td style="color:var(--text-muted)">{{ m.Memb_Id }}</td>
+                <td style="font-weight:600">{{ m.Name }}</td>
+                <td>{{ m.Address }}</td>
+                <td><span class="badge {% if m.Memb_type == 'Faculty' %}badge-purple{% else %}badge-blue{% endif %}">{{ m.Memb_type }}</span></td>
+                <td>{{ m.Memb_date }}</td>
+                <td>{{ m.Expiry_date }}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deleteMember({{ m.Memb_Id }})">Remove</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function showAddForm() {
+    openModal('Add New Member', `
+        <form id="addMemberForm">
+            <div class="form-group">
+                <label>Member ID</label>
+                <input type="number" name="Memb_Id" required>
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="Name" required>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" name="Address" required>
+            </div>
+            <div class="form-group">
+                <label>Type</label>
+                <select name="Memb_type" required>
+                    <option value="Student">Student</option>
+                    <option value="Faculty">Faculty</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Membership Date</label>
+                <input type="date" name="Memb_date" required>
+            </div>
+            <div class="form-group">
+                <label>Expiry Date</label>
+                <input type="date" name="Expiry_date" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Member</button>
+        </form>
+    `);
+    document.getElementById('addMemberForm').onsubmit = function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const data = Object.fromEntries(fd);
+        data.Memb_Id = parseInt(data.Memb_Id);
+        api('/api/members', 'POST', data).then(() => { closeModal(); location.reload(); });
+    };
+}
+function deleteMember(id) {
+    if (confirm('Remove this member and all their borrow records?')) {
+        api('/api/members/' + id, 'DELETE').then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

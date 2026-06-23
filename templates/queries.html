@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Queries - LibraryDB{% endblock %}
+{% block content %}
+<h1>Advanced Queries</h1>
+<p class="page-subtitle">Run the 4 graded SQL queries from your DBMS assignment</p>
+
+<div class="query-grid">
+    <div class="query-card" onclick="runQuery(1)">
+        <div class="query-num">A</div>
+        <h3>INNER JOIN</h3>
+        <p>Show who borrowed which book, with issue date</p>
+        <code>JOIN Member, Books, Borrow_Log</code>
+    </div>
+    <div class="query-card" onclick="runQuery(2)">
+        <div class="query-num">B</div>
+        <h3>GROUP BY + HAVING</h3>
+        <p>Members who borrowed more than 2 books</p>
+        <code>COUNT &gt; 2</code>
+    </div>
+    <div class="query-card" onclick="runQuery(3)">
+        <div class="query-num">C</div>
+        <h3>SUBQUERY</h3>
+        <p>Books published by OReilly Media</p>
+        <code>WHERE Pub_id = (SELECT ...)</code>
+    </div>
+    <div class="query-card" onclick="runQuery(4)">
+        <div class="query-num">D</div>
+        <h3>VIEW</h3>
+        <p>Active loans (unreturned books)</p>
+        <code>CREATE VIEW ActiveLoans</code>
+    </div>
+</div>
+
+<div id="query-result" class="table-container" style="display:none;">
+    <div style="padding: 18px 20px 0;">
+        <h2 id="result-title" style="font-size:16px; font-weight:700; margin-bottom:16px;"></h2>
+    </div>
+    <div id="result-table"></div>
+</div>
+
+<script>
+function runQuery(n) {
+    const titles = {
+        1: 'INNER JOIN — Who borrowed what',
+        2: 'GROUP BY + HAVING — Members with more than 2 borrows',
+        3: 'SUBQUERY — OReilly Media books',
+        4: 'VIEW — Active Loans (unreturned)'
+    };
+    document.getElementById('result-title').textContent = titles[n];
+    document.getElementById('query-result').style.display = 'block';
+    document.getElementById('result-table').innerHTML = '<div style="padding:20px;color:var(--text-muted)">Loading...</div>';
+
+    fetch('/api/query/' + n).then(r => r.json()).then(data => {
+        if (data.rows.length === 0) {
+            document.getElementById('result-table').innerHTML = '<div style="padding:20px;color:var(--text-muted)">No results found.</div>';
+            return;
+        }
+        let html = '<table><thead><tr>';
+        data.columns.forEach(c => html += `<th>${c}</th>`);
+        html += '</tr></thead><tbody>';
+        data.rows.forEach(row => {
+            html += '<tr>';
+            data.columns.forEach(c => html += `<td>${row[c] ?? '---'}</td>`);
+            html += '</tr>';
+        });
+        html += '</tbody></table>';
+        document.getElementById('result-table').innerHTML = html;
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Borrows - LibraryDB{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Borrow Logs</h1>
+        <p class="page-subtitle">{{ borrows|length }} total records</p>
+    </div>
+    <button class="btn btn-primary" onclick="showAddForm()">Issue Book</button>
+</div>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Book</th>
+                <th>Member</th>
+                <th>Issued</th>
+                <th>Due</th>
+                <th>Returned</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in borrows %}
+            <tr>
+                <td style="color:var(--text-muted)">{{ b.Issue_id }}</td>
+                <td style="font-weight:600">{{ b.Book_title }}</td>
+                <td>{{ b.Member_name }}</td>
+                <td>{{ b.Issue_date }}</td>
+                <td>{{ b.Due_date }}</td>
+                <td>{{ b.Return_date or '---' }}</td>
+                <td>
+                    {% if b.Return_date %}
+                        <span class="badge badge-green">Returned</span>
+                    {% else %}
+                        <span class="badge badge-orange">Active</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not b.Return_date %}
+                        <button class="btn btn-success btn-sm" onclick="returnBook({{ b.Issue_id }})">Return</button>
+                    {% endif %}
+                    <button class="btn btn-danger btn-sm" onclick="deleteBorrow({{ b.Issue_id }})">Remove</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function showAddForm() {
+    const books = {{ books | tojson }};
+    const members = {{ members | tojson }};
+    let bookOpts = books.map(b => `<option value="${b.book_id}">${b.Title}</option>`).join('');
+    let memOpts = members.map(m => `<option value="${m.Memb_Id}">${m.Name}</option>`).join('');
+    openModal('Issue a Book', `
+        <form id="addBorrowForm">
+            <div class="form-group">
+                <label>Issue ID</label>
+                <input type="number" name="Issue_id" required>
+            </div>
+            <div class="form-group">
+                <label>Book</label>
+                <select name="book_id" required>${bookOpts}</select>
+            </div>
+            <div class="form-group">
+                <label>Member</label>
+                <select name="Memb_Id" required>${memOpts}</select>
+            </div>
+            <div class="form-group">
+                <label>Issue Date</label>
+                <input type="date" name="Issue_date" value="${new Date().toISOString().slice(0,10)}" required>
+            </div>
+            <div class="form-group">
+                <label>Due Date</label>
+                <input type="date" name="Due_date" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Issue Book</button>
+        </form>
+    `);
+    document.getElementById('addBorrowForm').onsubmit = function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const data = Object.fromEntries(fd);
+        data.Issue_id = parseInt(data.Issue_id);
+        data.book_id = parseInt(data.book_id);
+        data.Memb_Id = parseInt(data.Memb_Id);
+        api('/api/borrows', 'POST', data).then(() => { closeModal(); location.reload(); });
+    };
+}
+function returnBook(id) {
+    if (confirm('Mark this book as returned?')) {
+        api('/api/borrows/' + id + '/return', 'POST').then(() => location.reload());
+    }
+}
+function deleteBorrow(id) {
+    if (confirm('Delete this borrow record?')) {
+        api('/api/borrows/' + id, 'DELETE').then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

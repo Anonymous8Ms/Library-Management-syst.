@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Publishers - LibraryDB{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>Publishers</h1>
+        <p class="page-subtitle">{{ publishers|length }} publishers</p>
+    </div>
+    <button class="btn btn-primary" onclick="showAddForm()">Add Publisher</button>
+</div>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in publishers %}
+            <tr>
+                <td style="color:var(--text-muted)">{{ p.Pub_id }}</td>
+                <td style="font-weight:600">{{ p.Name }}</td>
+                <td>{{ p.Address }}</td>
+                <td><button class="btn btn-danger btn-sm" onclick="deletePublisher({{ p.Pub_id }})">Remove</button></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+function showAddForm() {
+    openModal('Add New Publisher', `
+        <form id="addPubForm">
+            <div class="form-group">
+                <label>Publisher ID</label>
+                <input type="number" name="Pub_id" required>
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="Name" required>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" name="Address" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Publisher</button>
+        </form>
+    `);
+    document.getElementById('addPubForm').onsubmit = function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
+        const data = Object.fromEntries(fd);
+        data.Pub_id = parseInt(data.Pub_id);
+        api('/api/publishers', 'POST', data).then(() => { closeModal(); location.reload(); });
+    };
+}
+function deletePublisher(id) {
+    if (confirm('Remove this publisher and all their books?')) {
+        api('/api/publishers/' + id, 'DELETE').then(() => location.reload());
+    }
+}
+</script>
+{% endblock %}

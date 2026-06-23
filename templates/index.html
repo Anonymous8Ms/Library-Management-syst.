@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - LibraryDB{% endblock %}
+{% block content %}
+<h1>Dashboard</h1>
+<p class="page-subtitle">Library management overview</p>
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-label">Total Books</div>
+        <div class="stat-number">{{ total_books }}</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-label">Members</div>
+        <div class="stat-number">{{ total_members }}</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-label">Active Borrows</div>
+        <div class="stat-number">{{ active_borrows }}</div>
+    </div>
+    <div class="stat-card purple">
+        <div class="stat-label">Publishers</div>
+        <div class="stat-number">{{ total_publishers }}</div>
+    </div>
+</div>
+<div class="dashboard-section-title">Quick Access</div>
+<div class="dashboard-actions">
+    <a href="/books" class="action-card">
+        <span class="action-label">Books</span>
+        <span class="action-desc">Browse, add, and manage the catalog</span>
+    </a>
+    <a href="/members" class="action-card">
+        <span class="action-label">Members</span>
+        <span class="action-desc">Manage library member records</span>
+    </a>
+    <a href="/publishers" class="action-card">
+        <span class="action-label">Publishers</span>
+        <span class="action-desc">View and manage publishers</span>
+    </a>
+    <a href="/borrows" class="action-card">
+        <span class="action-label">Borrows</span>
+        <span class="action-desc">Issue, return, and track loans</span>
+    </a>
+    <a href="/queries" class="action-card">
+        <span class="action-label">Queries</span>
+        <span class="action-desc">Run advanced SQL queries</span>
+    </a>
+</div>
+{% endblock %}
